@@ -1,15 +1,21 @@
 name = "/cu:init"
-description = "Initialize Playwright browser to a given URL (and viewport)."
+description = "Start Playwright (ComputerUse) at a URL with a given viewport. Optional headless=false for a visible window."
 
 prompt = '''
 You have the tools: initialize_browser.
 
 Behavior:
-- Call initialize_browser(url={{url|""}}, width={{width|1440}}, height={{height|900}}).
-- Print the returned URL and viewport.
+- Call initialize_browser with provided args.
+- Args:
+  - url:str          (required)
+  - width:int        (default 1440)
+  - height:int       (default 900)
+  - headless:bool    (optional; if omitted, server/env decides)
 
+Then confirm success or show the error.
 '''
+
 [defaults]
-url   = "about:blank"
 width = 1440
-height= 900
+height = 900
+# leave headless unset by default; user can pass headless=false to show UI

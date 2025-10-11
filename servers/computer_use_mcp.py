@@ -57,6 +57,8 @@ _SUPPORTED_ACTIONS = [
     "drag_and_drop", "press_key", "execute_javascript",
 ]
 
+DEFAULT_HEADLESS = True  # silent by default
+
 def denormalize_x(x: int, screen_width: int) -> int:
     return int(int(x) / 1000 * screen_width)
 
@@ -122,9 +124,18 @@ async def _execute_type_text_at(args: Dict[str, Any]) -> Dict[str, Any]:
 mcp = FastMCP("ComputerUse MCP")
 
 @mcp.tool()
-async def initialize_browser(url: str, width: int = 1440, height: int = 900) -> Dict[str, Any]:
+async def initialize_browser(
+    url: str,
+    width: int = 1440,
+    height: int = 900,
+    headless: Optional[bool] = None  # <-- NEW
+) -> Dict[str, Any]:
     """
     Initializes the Playwright browser, context, and page (ASYNC).
+    Args:
+        url: initial URL
+        width/height: viewport
+        headless: if provided, overrides env defaults (True=headless, False=headful)
     """
     _STATE["screen_width"] = int(width)
     _STATE["screen_height"] = int(height)
@@ -134,18 +145,27 @@ async def initialize_browser(url: str, width: int = 1440, height: int = 900) -> 
         await close_browser()
 
     try:
-        # 1) Start Playwright (async)
+        # 1) Start Playwright
         _STATE["playwright"] = await async_playwright().start()
 
-        # 2) Launch browser — headless by default to avoid hidden dialogs
-        headful_env = os.getenv("CU_HEADFUL", "")
-        headless = not (headful_env.strip().lower() in ("1", "true", "yes"))
+        # 2) Resolve headless mode
+        # Priority: explicit arg -> env CU_HEADFUL -> DEFAULT_HEADLESS
+        if headless is None:
+            headful_env = os.getenv("CU_HEADFUL", "")
+            # CU_HEADFUL=1 means "headful", i.e., headless=False
+            if headful_env.strip().lower() in ("1", "true", "yes"):
+                effective_headless = False
+            else:
+                effective_headless = DEFAULT_HEADLESS
+        else:
+            effective_headless = bool(headless)
+
         launch_args: Dict[str, Any] = {}
         if os.getenv("CU_NO_SANDBOX", "").strip().lower() in ("1", "true", "yes"):
             launch_args["args"] = ["--no-sandbox"]
 
         _STATE["browser"] = await _STATE["playwright"].chromium.launch(
-            headless=headless, **launch_args
+            headless=effective_headless, **launch_args
         )
 
         # 3) Context & page
@@ -155,16 +175,20 @@ async def initialize_browser(url: str, width: int = 1440, height: int = 900) -> 
         )
         _STATE["page"] = await _STATE["context"].new_page()
 
-        # 4) Navigate to initial page
+        # 4) Navigate
         await _STATE["page"].goto(url, timeout=15000)
         await _await_render(_STATE["page"])
 
-        log.info("Browser initialized to %s at %dx%d", url, width, height)
+        log.info(
+            "Browser initialized to %s at %dx%d (headless=%s)",
+            url, width, height, effective_headless
+        )
         return {
             "ok": True,
             "url": _STATE["page"].url,
             "width": _STATE["screen_width"],
             "height": _STATE["screen_height"],
+            "headless": effective_headless,
         }
     except Exception as e:
         log.error("Initialization failed: %s", e)
