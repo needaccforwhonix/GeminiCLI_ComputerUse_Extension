@@ -1,0 +1,18 @@
+name = "/cu:search"
+description = "Search via omnibox: focus address bar, type query, press Enter."
+
+prompt = '''
+You have the tools: execute_action.
+
+Args:
+- query:str
+
+Behavior:
+- Call execute_action("press_key", {"key": "Meta+L"}).
+- Call execute_action("type_text_at", {"x": 1, "y": 1, "text": "{{query|}}", "press_enter": true}).
+
+Notes:
+- 'Meta+L' focuses the address bar on macOS. If your environment maps 'Control+L', adjust in your MCP or add OS detection.
+'''
+[defaults]
+query = "site:example.com playwright"

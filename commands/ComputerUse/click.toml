@@ -11,8 +11,8 @@ Args:
 Behavior:
 - Call execute_action("click_at", {"x": {{x|500}}, "y": {{y|500}} }).
 - Print status.
-
 '''
+
 [defaults]
 x = 500
 y = 500

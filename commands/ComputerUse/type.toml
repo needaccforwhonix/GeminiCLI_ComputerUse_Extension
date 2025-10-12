@@ -10,10 +10,15 @@ Args:
 - press_enter:bool
 
 Behavior:
-- Call execute_action("type_text_at", {"x": {{x|500}}, "y": {{y|500}}, "text": {{text|""}}, "press_enter": {{press_enter|false}} }).
+- Call execute_action("type_text_at", {
+    "x": {{x|500}},
+    "y": {{y|500}},
+    "text": "{{text|}}",
+    "press_enter": {{press_enter|false}}
+  }).
 - Print status.
-
 '''
+
 [defaults]
 x = 500
 y = 500

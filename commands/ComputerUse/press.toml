@@ -8,10 +8,9 @@ Args:
 - key:str    Examples: "Enter", "Escape", "Control+L", "Meta+L", "ArrowDown"
 
 Behavior:
-- Call execute_action("press_key", {"key": {{key|""}} }).
-- Print result or stub warning.
-
-Note: This action may be stubbed in your current MCP until implemented.
+- Call execute_action("press_key", {"key": "{{key|Enter}}"}).
+- Print result.
 '''
+
 [defaults]
 key = "Enter"
