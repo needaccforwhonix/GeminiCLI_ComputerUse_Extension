@@ -1,5 +1,5 @@
 name = "/cu:search"
-description = "Search Wikipedia by navigating directly to Special:Search."
+description = "Search via omnibox or site search field using keyboard only."
 
 prompt = '''
 You have the tools: execute_action.
@@ -8,15 +8,14 @@ Args:
 - query:str
 
 Behavior:
-- Build a URL-safe query (encode spaces and special chars).
-- Call execute_action("open_web_browser", {
-    "url": "https://en.wikipedia.org/w/index.php?title=Special:Search&search={{query|}}&ns0=1"
-  }).
-- Print status.
+# Focus the address bar, clear it, type query, press Enter
+- execute_action("press_key", {"key": "Control+L"})  # Use "Meta+L" on macOS
+- execute_action("press_key", {"key": "Delete"})
+- execute_action("type_text_at", {"x": 0, "y": 0, "text": "{{query|}}", "press_enter": true})
 
 Notes:
-- Do NOT use Meta+L. Playwright can’t type into the browser’s omnibox.
-- Wikipedia’s Special:Search is the canonical endpoint for queries.
+- Works reliably on macOS. On Windows/Linux, replace "Meta+L" with "Control+L".
+- The (x,y) here is ignored because typing goes to the focused element once Meta+L is sent.
 '''
 [defaults]
-query = "John Capobianco Network Automation Artficial Intelligence"
+query = "site:wikipedia.org computer networking"
