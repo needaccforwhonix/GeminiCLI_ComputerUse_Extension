@@ -294,7 +294,7 @@ async def execute_action(action_name: str, args: Dict[str, Any]) -> Dict[str, An
     """
     page = get_page()
     if page is None:
-        return {"ok": False, "error": "Browser not initialized. Use /cu:init first."}
+        return {"ok": False, "error": "Browser not initialized. Use /computeruse:init first."}
 
     log.info("Executing action: %s with args: %s", action_name, args)
 

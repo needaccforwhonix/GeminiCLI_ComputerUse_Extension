@@ -1,4 +1,4 @@
-name = "/cu:close"
+name = "/computeruse:close"
 description = "Close the Playwright browser and release resources."
 
 prompt = '''

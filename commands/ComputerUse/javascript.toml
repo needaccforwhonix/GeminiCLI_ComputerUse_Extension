@@ -1,4 +1,4 @@
-name = "/cu:js"
+name = "/computeruse:js"
 description = "Run a JS snippet in the page (if supported in your MCP)."
 
 prompt = '''

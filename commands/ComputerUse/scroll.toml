@@ -1,4 +1,4 @@
-name = "/cu:scroll"
+name = "/computeruse:scroll"
 description = "Smoothly scroll vertically to a % (0..1000) via execute_action(scroll_to_percent)."
 
 prompt = '''

@@ -1,4 +1,4 @@
-name = "/cu:state"
+name = "/computeruse:state"
 description = "Screenshot current page (capture_state) and optionally send to Gemini with a prompt."
 
 prompt = '''

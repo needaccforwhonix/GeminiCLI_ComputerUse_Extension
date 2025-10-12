@@ -77,7 +77,9 @@ Important:
 - Take a small pause between scroll steps so motion is obvious.
 
 ### Example Searching Wikipedia for "Computer Networking" and producing a Markdown report
-# Wikipedia Exploration: Computer Networks
+#### Wikipedia Exploration: Computer Networks
+
+Headless=false for visible browsing.
 
 You will systematically explore Wikipedia articles about computer networks using the ComputerUse MCP tools. Proceed step-by-step, taking screenshots after each major action.
 
@@ -189,5 +191,5 @@ You will systematically explore Wikipedia articles about computer networks using
 - **Screenshots:** Capture after every scroll, page load, and navigation
 - **Error handling:** If a link fails to load, skip it and proceed to the next
 - **Don't summarize early:** Only generate the final report after visiting all 8 articles
-- **Use your working slash command:** For searching, prefer `/cu:search` with keyboard focus
+- **Use your working slash command:** For searching, prefer `/computeruse:search` with keyboard focus
 - **Scroll smoothly:** Use `scroll_to_percent` with pauses, not instant jumps

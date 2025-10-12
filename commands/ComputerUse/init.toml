@@ -1,4 +1,4 @@
-name = "/cu:init"
+name = "/computeruse:init"
 description = "Start Playwright (ComputerUse) at a URL with a given viewport. Optional headless=false for a visible window."
 
 prompt = '''

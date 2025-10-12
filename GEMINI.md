@@ -1,6 +1,6 @@
 Computer Use Extension (Browser Control → Actions → State)
 
-Bring real browser automation into Gemini-CLI with a Playwright-powered MCP server and a focused set of /cu:* commands.
+Bring real browser automation into Gemini-CLI with a Playwright-powered MCP server and a focused set of /computeruse:* commands.
 
 This extension lets you:
 
@@ -40,54 +40,54 @@ Commands
 
 Index & Help
 
-/cu — quick help and usage tips
+/computeruse — quick help and usage tips
 
 Lifecycle
 
-/cu:init — start Playwright, open URL, set viewport
+/computeruse:init — start Playwright, open URL, set viewport
 
-/cu:close — close browser & release resources
+/computeruse:close — close browser & release resources
 
 Page Navigation & Input
 
-/cu:open — navigate to URL (uses open_web_browser)
+/computeruse:open — navigate to URL (uses open_web_browser)
 
-/cu:click — click at normalized coords (0..1000 scale)
+/computeruse:click — click at normalized coords (0..1000 scale)
 
-/cu:type — focus → replace → type text (optionally press Enter)
+/computeruse:type — focus → replace → type text (optionally press Enter)
 
-/cu:scroll — scroll to vertical percent (0..1000)
+/computeruse:scroll — scroll to vertical percent (0..1000)
 
-/cu:press — press a key or chord (e.g., Enter, Meta+L)
+/computeruse:press — press a key or chord (e.g., Enter, Meta+L)
 
-/cu:js — run a JavaScript snippet (stubbed until implemented)
+/computeruse:js — run a JavaScript snippet (stubbed until implemented)
 
 State & Orchestration
 
-/cu:state — screenshot + optional Gemini one-shot on the image
+/computeruse:state — screenshot + optional Gemini one-shot on the image
 
-/cu:macro — run a JSON array of actions (optional per-step screenshots & prompts)
+/computeruse:macro — run a JSON array of actions (optional per-step screenshots & prompts)
 
 All commands call your MCP tools: initialize_browser, execute_action, capture_state, close_browser.
 
 Typical Flows
 1) One-shot explore + caption
 
-/cu:init url="https://example.com" width=1440 height=900
+/computeruse:init url="https://example.com" width=1440 height=900
 
-/cu:click x=120 y=90
+/computeruse:click x=120 y=90
 
-/cu:type x=300 y=120 text="kittens" press_enter=true
+/computeruse:type x=300 y=120 text="kittens" press_enter=true
 
-/cu:state prompt="Summarize what this page shows."
+/computeruse:state prompt="Summarize what this page shows."
 
 2) Navigate + interact + multi-step macro
 
-/cu:macro actions='[{"name":"open_web_browser","args":{"url":"https://news.ycombinator.com"},"snapshot":true,"label":"hn"}, {"name":"click_at","args":{"x":520,"y":110},"snapshot":true,"label":"first-link"}]' prompt="What changed between steps?"
+/computeruse:macro actions='[{"name":"open_web_browser","args":{"url":"https://news.ycombinator.com"},"snapshot":true,"label":"hn"}, {"name":"click_at","args":{"x":520,"y":110},"snapshot":true,"label":"first-link"}]' prompt="What changed between steps?"
 
 3) Clean exit
 
-/cu:close
+/computeruse:close
 
 Installation & Setup
 Requirements (server side)
@@ -115,7 +115,7 @@ The server logs to stderr only; the stdio channel is reserved for MCP.
 
 Wire into Gemini-CLI
 
-Drop the TOML files for /cu, /cu:init, /cu:open, … into your custom commands folder (same place you keep /screenshare).
+Drop the TOML files for /computeruse, /computeruse:init, /computeruse:open, … into your custom commands folder (same place you keep /screenshare).
 
 If you package as an extension, add/merge entries in your gemini-extension.json so Gemini-CLI registers these commands and the MCP server.
 Minimal example snippet (adjust to your structure):
@@ -161,49 +161,49 @@ pixel_x = int(x / 1000 * screen_width)
 
 pixel_y = int(y / 1000 * screen_height)
 
-This makes your macros viewport-independent. Change viewport in /cu:init and keep the same flows.
+This makes your macros viewport-independent. Change viewport in /computeruse:init and keep the same flows.
 
 Examples
 
 Initialize at a URL
 
-/cu:init url="https://example.com" width=1440 height=900
+/computeruse:init url="https://example.com" width=1440 height=900
 
 
 Open a page
 
-/cu:open url="https://duckduckgo.com"
+/computeruse:open url="https://duckduckgo.com"
 
 
 Search (click + type)
 
-/cu:click x=220 y=110
-/cu:type x=220 y=110 text="playwright keyboard shortcuts" press_enter=true
+/computeruse:click x=220 y=110
+/computeruse:type x=220 y=110 text="playwright keyboard shortcuts" press_enter=true
 
 
 Scroll halfway
 
-/cu:scroll y=500
+/computeruse:scroll y=500
 
 
 Press a key
 
-/cu:press key="End"
+/computeruse:press key="End"
 
 
 Run JS (stubbed until implemented)
 
-/cu:js code="return document.title;"
+/computeruse:js code="return document.title;"
 
 
 Screenshot + reason
 
-/cu:state prompt="What is the main call to action on this page?"
+/computeruse:state prompt="What is the main call to action on this page?"
 
 
 Macro — open → search → screenshot each step
 
-/cu:macro actions='[
+/computeruse:macro actions='[
   {"name":"open_web_browser","args":{"url":"https://google.com"},"snapshot":true,"label":"home"},
   {"name":"type_text_at","args":{"x":250,"y":120,"text":"best espresso grinder","press_enter":true},"snapshot":true,"label":"results"}
 ]' prompt="Compare the screenshots and describe what changed."
@@ -231,7 +231,7 @@ label: optional; used as the screenshot filename hint (<ts>_<label>.png).
 Troubleshooting
 
 “Browser not initialized”
-Run /cu:init first (or call initialize_browser in another command).
+Run /computeruse:init first (or call initialize_browser in another command).
 
 Chromium can’t launch / No display (Linux headless)
 Use a virtual display:
@@ -255,7 +255,7 @@ Actions occur locally via Playwright; nothing is executed remotely by default.
 
 The MCP server avoids arbitrary shell execution.
 
-When you pass screenshots to Gemini (via /cu:state or /cu:macro), you explicitly do so with gemini -p "@<file> …" in the TOML — transparent by design.
+When you pass screenshots to Gemini (via /computeruse:state or /computeruse:macro), you explicitly do so with gemini -p "@<file> …" in the TOML — transparent by design.
 
 Server Architecture
 

@@ -1,4 +1,4 @@
-name = "/cu:macro"
+name = "/computeruse:macro"
 description = "Run a JSON array of Computer Use actions via execute_action; optional per-step screenshots."
 
 prompt = '''

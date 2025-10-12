@@ -1,18 +1,10 @@
-name = "/cu:click"
-description = "Click at normalized coords (0..1000) via execute_action(click_at)."
-
+name = "/computerusecomputeuse:click"
+description = "Click at coordinates"
 prompt = '''
-You have the tools: execute_action.
-
-Args:
-- x:int  (0..1000)
-- y:int  (0..1000)
-
-Behavior:
-- Call execute_action("click_at", {"x": {{x|500}}, "y": {{y|500}} }).
-- Print status.
+You have the tool: execute_action.
+Call: execute_action("click_at", {"x": {{x}}, "y": {{y}}})
+Then: capture_state("clicked")
 '''
-
-[defaults]
+[tools.defaults]
 x = 500
 y = 500

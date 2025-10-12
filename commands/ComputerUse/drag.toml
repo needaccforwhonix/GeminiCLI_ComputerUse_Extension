@@ -1,4 +1,4 @@
-name = "/cu:drag"
+name = "/computeruse:drag"
 description = "Drag from (x1,y1) → (x2,y2) normalized coords via execute_action(drag_and_drop)."
 
 prompt = '''
