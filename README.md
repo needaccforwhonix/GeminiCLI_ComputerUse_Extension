@@ -77,94 +77,117 @@ Important:
 - Take a small pause between scroll steps so motion is obvious.
 
 ### Example Searching Wikipedia for "Computer Networking" and producing a Markdown report
-Use ComputerUse MCP headfully to VISIBLY search Wikipedia for “Computer Network” and explore related articles.
+# Wikipedia Exploration: Computer Networks
 
-Goals:
-- Launch browser visibly (not headless).
-- Search Wikipedia for “Computer Network” using omnibox keyboard shortcuts.
-- Scroll through search results like a human, taking snapshots after each step.
-- Visit up to 8 relevant links, scrolling and taking screenshots on each sub-page.
-- Conclude with a Markdown summary of what was explored.
+You will systematically explore Wikipedia articles about computer networks using the ComputerUse MCP tools. Proceed step-by-step, taking screenshots after each major action.
 
----
+## Phase 1: Initialize & Search
 
-1) initialize_browser(
-     url="https://wikipedia.org",
-     width=1920, height=1080, headless=false)
+1. **Initialize headful browser:**
+   ```
+   initialize_browser(url="https://www.wikipedia.org", width=1920, height=1080, headless=false)
+   ```
+   Capture screenshot after load.
 
-2) Type into the homepage search box (already focused on wikipedia.org):
-   - execute_action("type_text_at", {
-       "x": 0, "y": 0,
-       "text": "Computer Networking",
-       "press_enter": true
-     })
+2. **Search for "Computer Network":**
+   Use the Wikipedia search field. Click the search box, then type the query and press Enter:
+   ```
+   execute_action("click_at", {"x": 500, "y": 50})
+   execute_action("type_text_at", {"x": 500, "y": 50, "text": "Computer Network", "press_enter": true})
+   ```
+   Wait for results page to load. Capture screenshot.
 
-   # Fallback only if no results load (input wasn’t focused):
-   - execute_action("execute_javascript", {
-       "code": "(()=>{const el=document.querySelector('#searchInput, input[type=search], input[name=search]'); if(!el) return false; el.focus(); el.value=''; return true;})()"
-     })
-   - execute_action("type_text_at", {
-       "x": 0, "y": 0,
-       "text": "Computer Networking",
-       "press_enter": true
-     })
+## Phase 2: Explore Search Results
 
-3) Scroll results page TOP→BOTTOM with visible pauses, taking a snapshot after each step:
-   for y in [200, 400, 600, 800, 1000]:
-     - execute_action("scroll_to_percent", {"y": y})
-     - capture_state(f"results_scroll_{y}")
+3. **Scroll through results page** (top to bottom with pauses):
+   ```
+   For each scroll position [200, 400, 600, 800, 1000]:
+     - execute_action("scroll_to_percent", {"y": position})
+     - Wait 500ms for smooth scroll
+     - capture_state(f"results_scroll_{position}")
+   ```
 
-4) Return to top and snapshot:
-   - execute_action("scroll_to_percent", {"y": 0})
-   - capture_state("results_back_to_top")
+4. **Return to top and capture:**
+   ```
+   execute_action("scroll_to_percent", {"y": 0})
+   capture_state("results_top")
+   ```
 
-5) Harvest result links (de-dupe, skip non-wiki targets):
-   - execute_action("execute_javascript", {
-       "code": "(() => { \
-         const scope = document.querySelector('#mw-content-text') || document.body; \
-         const links = Array.from(scope.querySelectorAll('a[href]')); \
-         const hrefs = links.map(a => a.href.trim()) \
-           .filter(h => h.includes('wikipedia.org/wiki/') && !h.includes('#')); \
-         return Array.from(new Set(hrefs)).slice(0,8); \
-       })();"
-     })
+## Phase 3: Extract & Visit Links
 
-6) Visit each harvested link (limit 8):
-   Preferred (if open_new_tab exists):
-     - For each <link> i:
-         - open_new_tab(url="<link>", focus=true)
-         - capture_state(f"link{i}_load")
-         - For y in [200, 400, 600, 800, 1000]:
-               execute_action("scroll_to_percent", {"y": y})
-               capture_state(f"link{i}_scroll_{y}")
-         - switch_to_tab(0)
-   Fallback:
-     - execute_action("open_web_browser", {"url": "<link>"})
-     - capture_state(f"link{i}_load")
-     - For y in [200, 400, 600, 800, 1000]:
-           execute_action("scroll_to_percent", {"y": y})
-           capture_state(f"link{i}_scroll_{y}")
-     - execute_action("open_web_browser", {"url": "https://wikipedia.org/wiki/Computer_network"})
-     - capture_state(f"link{i}_return")
+5. **Extract all Wikipedia article links** from the search results (limit to 8 unique articles):
+   ```
+   execute_action("execute_javascript", {
+     "code": "(() => {
+       const links = Array.from(document.querySelectorAll('a[href*=\"/wiki/\"]'))
+         .map(a => a.href)
+         .filter(h => h.includes('wikipedia.org/wiki/') && !h.includes('#'))
+         .filter((v, i, a) => a.indexOf(v) === i);
+       return links.slice(0, 8);
+     })()"
+   })
+   ```
 
-7) After visiting links, ensure we’re back on the main results page and take a final snapshot:
-   - capture_state("final_overview")
+6. **For each of the 8 extracted links** (in sequence):
+   - Navigate to the link: `execute_action("open_web_browser", {"url": "<link_url>"})`
+   - Capture screenshot: `capture_state(f"article_{i}_loaded")`
+   - Scroll through article [0, 250, 500, 750, 1000]:
+     ```
+     execute_action("scroll_to_percent", {"y": position})
+     capture_state(f"article_{i}_scroll_{position}")
+     ```
+   - Return to search results before next link
 
-8) Produce a concise Markdown report titled:
-   # Wikipedia Exploration — Computer Networks
+## Phase 4: Summary Report
 
-   Include:
-   - **Primary search query & URL**
-   - **List of visited articles (titles + URLs)**
-   - **What you learned about Computer Networks** — 5–8 bullets
-   - **Key subtopics found** (e.g., protocols, topology, history, standards)
-   - **Notable cross-references or linked topics**
-   - **References (all URLs visited)**
+7. **After visiting all 8 articles**, generate a comprehensive Markdown report:
 
----
+   ```markdown
+   # Wikipedia Exploration Report: Computer Networks
+   
+   ## Search Query
+   - **Primary Query:** Computer Network
+   - **Search URL:** [URL from search results]
+   
+   ## Articles Visited (up to 8)
+   1. [Article Title](URL) — 1-2 sentence summary
+   2. [Article Title](URL) — 1-2 sentence summary
+   ... (continue for all 8)
+   
+   ## Key Learnings About Computer Networks
+   - [Key point 1]
+   - [Key point 2]
+   - [Key point 3]
+   - [Key point 4]
+   - [Key point 5]
+   - [Key point 6]
+   - [Key point 7]
+   - [Key point 8]
+   
+   ## Major Subtopics Discovered
+   - **Protocols & Standards:** (list)
+   - **Topology & Architecture:** (list)
+   - **History & Development:** (list)
+   - **Technologies & Components:** (list)
+   - **Related Disciplines:** (list)
+   
+   ## Cross-References & Related Topics
+   - [Topic 1]
+   - [Topic 2]
+   - [Topic 3]
+   
+   ## All URLs Visited
+   1. [URL 1]
+   2. [URL 2]
+   ... (all 8+ URLs)
+   ```
 
-Important:
-- Keep motion visible; pause slightly between scrolls.
-- Take snapshots after **every** scroll and page load.
-- If a link fails, skip gracefully.
-- Do not summarize until step 8.
+## Important Notes
+
+- **Visibility:** Keep `headless=false` so you see all actions in real-time
+- **Pacing:** Wait 500-1000ms between scrolls for smooth, visible motion
+- **Screenshots:** Capture after every scroll, page load, and navigation
+- **Error handling:** If a link fails to load, skip it and proceed to the next
+- **Don't summarize early:** Only generate the final report after visiting all 8 articles
+- **Use your working slash command:** For searching, prefer `/cu:search` with keyboard focus
+- **Scroll smoothly:** Use `scroll_to_percent` with pauses, not instant jumps
