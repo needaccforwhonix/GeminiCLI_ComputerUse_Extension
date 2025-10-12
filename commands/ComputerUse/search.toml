@@ -1,5 +1,5 @@
 name = "/cu:search"
-description = "Search via omnibox: focus address bar, type query, press Enter."
+description = "Search via omnibox or site search field using keyboard only."
 
 prompt = '''
 You have the tools: execute_action.
@@ -8,11 +8,14 @@ Args:
 - query:str
 
 Behavior:
-- Call execute_action("press_key", {"key": "Meta+L"}).
-- Call execute_action("type_text_at", {"x": 1, "y": 1, "text": "{{query|}}", "press_enter": true}).
+# Focus the address bar, clear it, type query, press Enter
+- execute_action("press_key", {"key": "Meta+L"})
+- execute_action("press_key", {"key": "Delete"})
+- execute_action("type_text_at", {"x": 0, "y": 0, "text": "{{query|}}", "press_enter": true})
 
 Notes:
-- 'Meta+L' focuses the address bar on macOS. If your environment maps 'Control+L', adjust in your MCP or add OS detection.
+- Works reliably on macOS. On Windows/Linux, replace "Meta+L" with "Control+L".
+- The (x,y) here is ignored because typing goes to the focused element once Meta+L is sent.
 '''
 [defaults]
-query = "site:example.com playwright"
+query = "site:wikipedia.org computer networking"
