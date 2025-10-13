@@ -146,6 +146,7 @@ async def _execute_type_text_at(args: Dict[str, Any]) -> Dict[str, Any]:
     for k in ("x", "y", "text"):
         if k not in args:
             raise ValueError("type_text_at requires 'x','y','text'")
+
     x = denormalize_x(args["x"], _STATE["screen_width"])
     y = denormalize_y(args["y"], _STATE["screen_height"])
     text = str(args["text"])
@@ -156,14 +157,52 @@ async def _execute_type_text_at(args: Dict[str, Any]) -> Dict[str, Any]:
         await page.evaluate(f"window.__updateCursor && __updateCursor({x},{y},false)")
     except Exception:
         pass
+
     await page.mouse.move(x, y)
     await page.mouse.click(x, y)
-    combo = "Meta+A" if sys.platform == "darwin" else "Control+A"
-    await page.keyboard.press(combo)
-    await page.keyboard.press("Delete")
+
+    # Try to focus a real text-receiving element at the click point
+    focused_ok = await page.evaluate(
+        """
+        ([x, y]) => {
+          const el = document.elementFromPoint(x, y);
+          if (!el) return false;
+          const target = el.closest('input,textarea,[contenteditable="true"],[role="searchbox"],[type="search"]');
+          if (!target) return false;
+          target.focus();
+          try {
+            // Select existing text if supported (but only in inputs/textareas)
+            if (target.select) target.select();
+            else if (target.setSelectionRange && typeof target.value === 'string') {
+              target.setSelectionRange(0, target.value.length);
+            }
+          } catch (_) {}
+          return true;
+        }
+        """,
+        [x, y],
+    )
+
+    # Only do "Select All" if an editable is actually focused
+    if focused_ok:
+        # Optional: clear existing value via JS to avoid body-select-all
+        try:
+            await page.evaluate(
+                "if (document.activeElement && 'value' in document.activeElement) document.activeElement.value='';"
+            )
+        except Exception:
+            pass
+    else:
+        log.warning("No editable element at click point; skipping select-all to avoid page-wide selection.")
+
     await page.keyboard.type(text)
     if press_enter:
         await page.keyboard.press("Enter")
+
+    try:
+        await page.evaluate(f"window.__updateCursor && __updateCursor({x},{y},true)")
+    except Exception:
+        pass
 
     return {"status": f"Typed text at ({x}, {y}), enter: {press_enter}"}
 
@@ -255,7 +294,7 @@ async def initialize_browser(
         )
         _STATE["context"] = await _STATE["browser"].new_context(
             viewport={"width": _STATE["screen_width"], "height": _STATE["screen_height"]},
-            device_scale_factor=1,
+            device_scale_factor=2,
         )
         _STATE["page"] = await _STATE["context"].new_page()
 
@@ -368,6 +407,39 @@ async def capture_state(action_name: str, result_ok: bool = True, error_msg: str
     except Exception as e:
         log.error("Error capturing state: %s", e)
         return {"ok": False, "error": f"State capture failed: {e}"}
+
+@mcp.tool()
+async def click_selector(selector: str, nth: int = 0) -> Dict[str, Any]:
+    page = get_page()
+    if page is None:
+        return {"ok": False, "error": "Browser not initialized."}
+    loc = page.locator(selector).nth(nth)
+    await loc.wait_for(state="visible", timeout=8000)
+    await loc.click()
+    await _await_render(page)
+    return {"ok": True, "status": f"Clicked selector {selector} [nth={nth}]"}
+
+@mcp.tool()
+async def fill_selector(selector: str, text: str, press_enter: bool = False, clear: bool = True) -> Dict[str, Any]:
+    page = get_page()
+    if page is None:
+        return {"ok": False, "error": "Browser not initialized."}
+    loc = page.locator(selector).first
+    await loc.wait_for(state="visible", timeout=8000)
+    await loc.click()
+    if clear:
+        try:
+            await loc.fill("")  # uses element.value when possible
+        except Exception:
+            # Fallback JS clear
+            await page.evaluate(
+                "(sel)=>{const el=document.querySelector(sel); if(el && 'value' in el) el.value='';}", selector
+            )
+    await loc.type(text)
+    if press_enter:
+        await page.keyboard.press("Enter")
+    await _await_render(page)
+    return {"ok": True, "status": f"Filled {selector} with text", "pressed_enter": press_enter}
 
 @mcp.tool()
 async def close_browser() -> Dict[str, Any]:
