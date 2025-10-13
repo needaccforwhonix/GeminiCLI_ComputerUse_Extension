@@ -81,115 +81,131 @@ Important:
 
 Headless=false for visible browsing.
 
-You will systematically explore Wikipedia articles about computer networks using the ComputerUse MCP tools. Proceed step-by-step, taking screenshots after each major action.
+You will systematically explore Wikipedia (and optionally Google) articles about computer networks using the ComputerUse MCP tools. Use selectors (not coordinates), add pauses so the typing is obvious, and take screenshots after each major step.
 
-## Phase 1: Initialize & Search
+Phase 1: Initialize & Search (Wikipedia)
 
-1. **Initialize headful browser:**
-   ```
-   initialize_browser(url="https://www.wikipedia.org", width=1920, height=1080, headless=false)
-   ```
-   Capture screenshot after load.
+Initialize headful browser
 
-2. **Search for "Computer Network":**
-   Use the Wikipedia search field. Click the search box, then type the query and press Enter:
-   ```
-   execute_action("click_at", {"x": 500, "y": 50})
-   execute_action("type_text_at", {"x": 500, "y": 50, "text": "Computer Network", "press_enter": true})
-   ```
-   Wait for results page to load. Capture screenshot.
+initialize_browser(url="https://www.wikipedia.org", width=1920, height=1080, headless=false)
+capture_state("wikipedia_home")
+pause(800)
 
-## Phase 2: Explore Search Results
 
-3. **Scroll through results page** (top to bottom with pauses):
-   ```
-   For each scroll position [200, 400, 600, 800, 1000]:
-     - execute_action("scroll_to_percent", {"y": position})
-     - Wait 500ms for smooth scroll
-     - capture_state(f"results_scroll_{position}")
-   ```
+Search for “Computer Network” with visible typing
 
-4. **Return to top and capture:**
-   ```
-   execute_action("scroll_to_percent", {"y": 0})
-   capture_state("results_top")
-   ```
+fill_selector('input[name="search"]', 'Computer Network', true, true)
+pause(800)   # let navigation/rendering be seen
+capture_state("wiki_search_results_or_article")
 
-## Phase 3: Extract & Visit Links
 
-5. **Extract all Wikipedia article links** from the search results (limit to 8 unique articles):
-   ```
-   execute_action("execute_javascript", {
-     "code": "(() => {
-       const links = Array.from(document.querySelectorAll('a[href*=\"/wiki/\"]'))
-         .map(a => a.href)
-         .filter(h => h.includes('wikipedia.org/wiki/') && !h.includes('#'))
-         .filter((v, i, a) => a.indexOf(v) === i);
-       return links.slice(0, 8);
-     })()"
-   })
-   ```
+Note: Wikipedia may jump straight to the article. Continue from whatever page loads.
 
-6. **For each of the 8 extracted links** (in sequence):
-   - Navigate to the link: `execute_action("open_web_browser", {"url": "<link_url>"})`
-   - Capture screenshot: `capture_state(f"article_{i}_loaded")`
-   - Scroll through article [0, 250, 500, 750, 1000]:
-     ```
-     execute_action("scroll_to_percent", {"y": position})
-     capture_state(f"article_{i}_scroll_{position}")
-     ```
-   - Return to search results before next link
+Phase 2: Explore the page/results with smooth pacing
 
-## Phase 4: Summary Report
+Scroll (top → bottom) with pauses
 
-7. **After visiting all 8 articles**, generate a comprehensive Markdown report:
+for y in [200, 400, 600, 800, 1000]:
+  execute_action("scroll_to_percent", {"y": y})
+  pause(700)
+  capture_state(f"wiki_scroll_{y}")
 
-   ```markdown
-   # Wikipedia Exploration Report: Computer Networks
-   
-   ## Search Query
-   - **Primary Query:** Computer Network
-   - **Search URL:** [URL from search results]
-   
-   ## Articles Visited (up to 8)
-   1. [Article Title](URL) — 1-2 sentence summary
-   2. [Article Title](URL) — 1-2 sentence summary
-   ... (continue for all 8)
-   
-   ## Key Learnings About Computer Networks
-   - [Key point 1]
-   - [Key point 2]
-   - [Key point 3]
-   - [Key point 4]
-   - [Key point 5]
-   - [Key point 6]
-   - [Key point 7]
-   - [Key point 8]
-   
-   ## Major Subtopics Discovered
-   - **Protocols & Standards:** (list)
-   - **Topology & Architecture:** (list)
-   - **History & Development:** (list)
-   - **Technologies & Components:** (list)
-   - **Related Disciplines:** (list)
-   
-   ## Cross-References & Related Topics
-   - [Topic 1]
-   - [Topic 2]
-   - [Topic 3]
-   
-   ## All URLs Visited
-   1. [URL 1]
-   2. [URL 2]
-   ... (all 8+ URLs)
-   ```
 
-## Important Notes
+Return to top
 
-- **Visibility:** Keep `headless=false` so you see all actions in real-time
-- **Pacing:** Wait 500-1000ms between scrolls for smooth, visible motion
-- **Screenshots:** Capture after every scroll, page load, and navigation
-- **Error handling:** If a link fails to load, skip it and proceed to the next
-- **Don't summarize early:** Only generate the final report after visiting all 8 articles
-- **Use your working slash command:** For searching, prefer `/computeruse:search` with keyboard focus
-- **Scroll smoothly:** Use `scroll_to_percent` with pauses, not instant jumps
+execute_action("scroll_to_percent", {"y": 0})
+pause(500)
+capture_state("wiki_top")
+
+Phase 3: Extract & Visit Links (up to 8)
+
+Extract article links on current page
+
+execute_action("execute_javascript", {
+  "code": "(() => {\
+    const links = Array.from(document.querySelectorAll('a[href*=\"/wiki/\"]'))\
+      .map(a => a.href)\
+      .filter(h => h.includes('wikipedia.org/wiki/') && !h.includes('#'))\
+      .filter((v, i, a) => a.indexOf(v) === i);\
+    return links.slice(0, 8);\
+  })()"
+})
+pause(600)
+
+
+Visit each link in sequence
+For each link i:
+
+execute_action("open_web_browser", {"url": "{{link_i}}"})
+pause(900)
+capture_state(f"article_{i}_loaded")
+
+for y in [0, 250, 500, 750, 1000]:
+  execute_action("scroll_to_percent", {"y": y})
+  pause(650)
+  capture_state(f"article_{i}_scroll_{y}")
+
+# Go back to the search/article hub if desired:
+# execute_action("open_web_browser", {"url": "<the-page-you-extracted-from>"})
+# pause(600)
+
+(Optional) Phase 3b: Also show a Google search (for demo effect)
+execute_action("open_web_browser", {"url": "https://www.google.com"})
+pause(700)
+capture_state("google_home")
+
+fill_selector('textarea[name=\"q\"]', 'Computer Network', true, true)
+pause(900)
+capture_state("google_results_top")
+
+execute_action("scroll_to_percent", {"y": 600})
+pause(700)
+capture_state("google_results_mid")
+
+Phase 4: Summary Report (after all visits)
+
+After visiting all targets, produce a Markdown summary:
+
+# Wikipedia Exploration Report: Computer Networks
+
+## Search Query
+- **Primary Query:** Computer Network
+- **Search URL:** [Insert the URL where the search happened]
+
+## Articles Visited (up to 8)
+1. [Title 1](URL) — 1–2 sentence summary
+2. [Title 2](URL) — 1–2 sentence summary
+...
+
+## Key Learnings
+- ...
+- ...
+
+## Major Subtopics
+- **Protocols & Standards:** ...
+- **Topology & Architecture:** ...
+- **History & Development:** ...
+- **Technologies & Components:** ...
+- **Related Disciplines:** ...
+
+## All URLs Visited
+1. URL
+2. URL
+...
+
+## Environment Variables
+🧩 Recommended ComputerUse MCP Environment Variables
+Variable	Purpose	Recommended for Demo	Example
+CU_HEADFUL	Launch the browser with a visible window.	✅ Yes	export CU_HEADFUL=1
+CU_SLOW_MO	Milliseconds of delay between Playwright actions (move, click, type).	✅ Yes	export CU_SLOW_MO=700
+CU_SHOW_CURSOR	Display cyan “cursor ring” overlay to visualize movement.	✅ Yes	export CU_SHOW_CURSOR=true
+CU_NO_SANDBOX	Disable Chromium sandbox if Playwright complains (needed in some Docker/macOS setups).	optional	export CU_NO_SANDBOX=1
+CU_BROWSER	Force a specific browser (chromium, firefox, webkit) if you installed all.	optional	export CU_BROWSER=chromium
+CU_DEVICE_SCALE	Override Retina scaling (use 2 on macOS for pixel-accurate clicks).	optional	export CU_DEVICE_SCALE=2
+
+🧠 Typical macOS Demo Setup
+export CU_HEADFUL=1
+export CU_SLOW_MO=800
+export CU_SHOW_CURSOR=true
+export CU_DEVICE_SCALE=2
+export CU_NO_SANDBOX=0
