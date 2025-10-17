@@ -2,5 +2,4 @@
 fastmcp>=2.12
 playwright>=1.55
 pillow>=11.0
-mcp>=1.17
 google-genai>=1.40
