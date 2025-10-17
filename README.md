@@ -194,18 +194,32 @@ After visiting all targets, produce a Markdown summary:
 ...
 
 ## Environment Variables
+
 🧩 Recommended ComputerUse MCP Environment Variables
+
 Variable	Purpose	Recommended for Demo	Example
+
 CU_HEADFUL	Launch the browser with a visible window.	✅ Yes	export CU_HEADFUL=1
+
 CU_SLOW_MO	Milliseconds of delay between Playwright actions (move, click, type).	✅ Yes	export CU_SLOW_MO=700
+
 CU_SHOW_CURSOR	Display cyan “cursor ring” overlay to visualize movement.	✅ Yes	export CU_SHOW_CURSOR=true
+
 CU_NO_SANDBOX	Disable Chromium sandbox if Playwright complains (needed in some Docker/macOS setups).	optional	export CU_NO_SANDBOX=1
+
 CU_BROWSER	Force a specific browser (chromium, firefox, webkit) if you installed all.	optional	export CU_BROWSER=chromium
+
 CU_DEVICE_SCALE	Override Retina scaling (use 2 on macOS for pixel-accurate clicks).	optional	export CU_DEVICE_SCALE=2
 
+
 🧠 Typical macOS Demo Setup
+
 export CU_HEADFUL=1
+
 export CU_SLOW_MO=800
+
 export CU_SHOW_CURSOR=true
+
 export CU_DEVICE_SCALE=2
+
 export CU_NO_SANDBOX=0
